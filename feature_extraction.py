@@ -1,5 +1,10 @@
 import pickle
 import tensorflow as tf
+from keras.models import Sequential
+from keras.layers.core import  Dense, Flatten, Dropout
+from keras.optimizers import Adam
+from keras.regularizers import l2
+import numpy as np
 
 vgg = "https://d17h27t6h515a5.cloudfront.net/topher/2016/November/5834b432_vgg-100/vgg-100.zip"
 resnet = "https://d17h27t6h515a5.cloudfront.net/topher/2016/November/5834b634_resnet-100/resnet-100.zip"
@@ -52,8 +57,25 @@ def main(_):
     # 10 for cifar10
     # 43 for traffic
 
+    nb_classes = len(np.unique(y_train))
+    inp_shape = X_train.shape[1:]
+
+    model = Sequential()
+    model.add(Flatten(input_shape=inp_shape))
+    model.add(Dense(1024, activation='relu', W_regularizer=l2(0.01)))
+    #model.add(Dropout(.5))
+    model.add(Dense(nb_classes, activation='softmax'))
+
+    adam = Adam()
+    model.compile(optimizer=adam, loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
     # TODO: train your model here
 
+    model.fit(X_train, y_train,
+              batch_size=128,
+              nb_epoch=1000,
+              validation_data=(X_val, y_val),
+              shuffle=True)
 
 # parses flags and calls the `main` function above
 if __name__ == '__main__':
